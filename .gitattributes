@@ -1,0 +1,32 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts should always use LF
+*.sh text eol=lf
+
+# Windows scripts should always use CRLF
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# TypeScript and JavaScript files
+*.ts text
+*.js text
+*.json text
+
+# Documentation
+*.md text
+*.txt text
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+

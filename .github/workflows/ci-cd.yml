@@ -1,0 +1,131 @@
+name: Simple CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  # Build and Test
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Copy .env.dev to .env for deployment
+        run: cp .env.dev .env
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 7
+
+      - name: Upload .env file
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-file
+          path: .env
+          retention-days: 7
+
+  # Deploy to AWS EC2 (only on dev branch)
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
+
+      - name: Download .env file
+        uses: actions/download-artifact@v4
+        with:
+          name: env-file
+          path: ./
+
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          # Create SSH key file
+          echo "$EC2_KEY" > ec2_key.pem
+          chmod 600 ec2_key.pem
+          
+          # Create deployment package
+          tar -czf deploy.tar.gz dist/ package.json package-lock.json .env
+          
+          # Copy files to EC2
+          scp -i ec2_key.pem -o StrictHostKeyChecking=no deploy.tar.gz $EC2_USER@$EC2_HOST:/tmp/
+          
+          # Deploy on EC2
+          ssh -i ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'ENDSSH'
+            cd /var/www/github-actions-demo
+            
+            # Backup current version
+            if [ -d "current" ]; then
+              mv current backup_$(date +%Y%m%d_%H%M%S)
+            fi
+            
+            # Extract new version
+            mkdir -p current
+            tar -xzf /tmp/deploy.tar.gz -C current/
+            cd current
+            
+            # Install production dependencies
+            npm ci --production
+            
+            # Restart application using PM2
+            pm2 restart github-actions-demo || pm2 start dist/index.js --name github-actions-demo
+            
+            # Clean up
+            rm /tmp/deploy.tar.gz
+          ENDSSH
+          
+          # Clean up local SSH key
+          rm ec2_key.pem
+
+      - name: Verify Deployment
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          sleep 5
+          curl -f http://$EC2_HOST:3000/health || exit 1
+
