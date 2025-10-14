@@ -39,40 +39,23 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Verify .env.dev exists
+      - name: Create .env file for deployment
         run: |
-          echo "=== Checking if .env.dev exists ==="
-          if [ ! -f .env.dev ]; then
-            echo "ERROR: .env.dev file not found!"
-            echo "Current directory:"
-            pwd
-            echo "Files in current directory:"
-            ls -la
-            exit 1
-          fi
-          echo ".env.dev found!"
-          ls -la .env.dev
-          echo "Content of .env.dev:"
-          cat .env.dev
-
-      - name: Prepare .env file for deployment
-        run: |
-          echo "=== Preparing .env file for deployment ==="
-          echo "Creating deploy-files directory..."
-          mkdir -p deploy-files || { echo "Failed to create directory"; exit 1; }
+          echo "=== Creating .env file for deployment ==="
+          mkdir -p deploy-files
           
-          echo "Copying .env.dev to deploy-files/.env..."
-          cp -v .env.dev deploy-files/.env || { echo "Failed to copy file"; exit 1; }
+          # Create .env file directly with environment variables
+          cat > deploy-files/.env << 'EOF'
+NODE_ENV=production
+PORT=3000
+WELCOME_MESSAGE=Hello from GitHub Actions Demo!
+HEALTH_MESSAGE=Server is running fine!
+API_MESSAGE=This is a simple API response
+EOF
           
-          echo "Verifying .env file in deploy-files:"
+          echo "Verifying .env file was created:"
           ls -la deploy-files/
-          
-          if [ ! -f deploy-files/.env ]; then
-            echo "ERROR: deploy-files/.env was not created!"
-            exit 1
-          fi
-          
-          echo "SUCCESS! Content of deploy-files/.env:"
+          echo "Content of deploy-files/.env:"
           cat deploy-files/.env
 
       - name: Upload build artifacts
