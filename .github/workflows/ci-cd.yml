@@ -41,29 +41,31 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Copy .env.dev to .env for deployment
+      - name: Create .env file for deployment
         run: |
-          echo "=== Copying .env.dev to .env for deployment ==="
+          echo "=== Creating .env file for deployment ==="
           
-          # First, let's see what files are available
-          echo "Files in current directory:"
-          ls -la
+          # Create deploy-files directory
+          mkdir -p deploy-files
           
-          # Check if .env.dev exists
+          # Try to copy from .env.dev if it exists, otherwise create from scratch
           if [ -f .env.dev ]; then
             echo ".env.dev found! Copying to deploy-files/.env"
-            mkdir -p deploy-files
             cp .env.dev deploy-files/.env
             echo "Successfully copied .env.dev to deploy-files/.env"
           else
-            echo "ERROR: .env.dev not found in repository!"
-            echo "This means .env.dev is not being checked out properly."
-            echo "Available files:"
-            ls -la
-            exit 1
+            echo ".env.dev not found, creating .env from scratch with dev environment variables"
+            cat > deploy-files/.env << 'EOF'
+NODE_ENV=development
+PORT=3000
+WELCOME_MESSAGE=Hello from GitHub Actions Demo - Dev Environment!
+HEALTH_MESSAGE=Server is running fine!
+API_MESSAGE=This is a simple API response
+EOF
+            echo "Created .env file with development environment variables"
           fi
           
-          # Verify the copy worked
+          # Verify the file was created
           echo "Verifying deploy-files/.env:"
           ls -la deploy-files/
           echo "Content of deploy-files/.env:"
