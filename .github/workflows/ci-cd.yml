@@ -41,50 +41,12 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Create .env file for deployment
-        run: |
-          echo "=== Creating .env file for deployment ==="
-          
-          # Create deploy-files directory
-          mkdir -p deploy-files
-          
-          # Try to copy from .env.dev if it exists, otherwise create from scratch
-          if [ -f .env.dev ]; then
-            echo ".env.dev found! Copying to deploy-files/.env"
-            cp .env.dev deploy-files/.env
-            echo "Successfully copied .env.dev to deploy-files/.env"
-          else
-            echo ".env.dev not found, creating .env from scratch with dev environment variables"
-            cat > deploy-files/.env << 'EOF'
-NODE_ENV=development
-PORT=3000
-WELCOME_MESSAGE=Hello from GitHub Actions Demo - Dev Environment!
-HEALTH_MESSAGE=Server is running fine!
-API_MESSAGE=This is a simple API response
-EOF
-            echo "Created .env file with development environment variables"
-          fi
-          
-          # Verify the file was created
-          echo "Verifying deploy-files/.env:"
-          ls -la deploy-files/
-          echo "Content of deploy-files/.env:"
-          cat deploy-files/.env
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: dist/
           retention-days: 7
-
-      - name: Upload .env file
-        uses: actions/upload-artifact@v4
-        with:
-          name: env-file
-          path: deploy-files/.env
-          retention-days: 7
-          if-no-files-found: error
 
   # Deploy to AWS EC2 (only on dev branch)
   deploy:
@@ -103,18 +65,8 @@ EOF
           name: dist-files
           path: dist/
 
-      - name: Download .env file
-        uses: actions/download-artifact@v4
-        with:
-          name: env-file
-          path: ./
-
       - name: Verify downloaded files
         run: |
-          echo "Checking if .env file was downloaded:"
-          ls -la .env || echo ".env file not found!"
-          echo "Content of current directory:"
-          ls -la
           echo "Verifying dist directory:"
           ls -la dist/
 
@@ -129,7 +81,7 @@ EOF
           chmod 600 ec2_key.pem
           
           # Create deployment package
-          tar -czf deploy.tar.gz dist/ package.json package-lock.json .env
+          tar -czf deploy.tar.gz dist/ package.json package-lock.json
           
           # Copy files to EC2
           scp -i ec2_key.pem -o StrictHostKeyChecking=no deploy.tar.gz $EC2_USER@$EC2_HOST:/tmp/
