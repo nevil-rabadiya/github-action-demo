@@ -40,7 +40,13 @@ jobs:
         run: npm test
 
       - name: Copy .env.dev to .env for deployment
-        run: cp .env.dev .env
+        run: |
+          echo "Copying .env.dev to .env"
+          cp .env.dev .env
+          echo "Verifying .env file was created:"
+          ls -la .env
+          echo "Content of .env:"
+          cat .env
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -55,6 +61,7 @@ jobs:
           name: env-file
           path: .env
           retention-days: 7
+          if-no-files-found: error
 
   # Deploy to AWS EC2 (only on dev branch)
   deploy:
@@ -78,6 +85,15 @@ jobs:
         with:
           name: env-file
           path: ./
+
+      - name: Verify downloaded files
+        run: |
+          echo "Checking if .env file was downloaded:"
+          ls -la .env || echo ".env file not found!"
+          echo "Content of current directory:"
+          ls -la
+          echo "Verifying dist directory:"
+          ls -la dist/
 
       - name: Deploy to EC2
         env:
