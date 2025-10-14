@@ -46,14 +46,15 @@ jobs:
           echo "Content of .env.dev:"
           cat .env.dev
 
-      - name: Copy .env.dev to .env for deployment
+      - name: Prepare .env file for deployment
         run: |
-          echo "Copying .env.dev to .env"
-          cp .env.dev .env
-          echo "Verifying .env file was created:"
-          ls -la .env
-          echo "Content of .env:"
-          cat .env
+          echo "Copying .env.dev to deployment directory"
+          mkdir -p deploy-files
+          cp .env.dev deploy-files/.env
+          echo "Verifying .env file in deploy-files:"
+          ls -la deploy-files/
+          echo "Content of deploy-files/.env:"
+          cat deploy-files/.env
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -66,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: env-file
-          path: ./.env
+          path: deploy-files/.env
           retention-days: 7
           if-no-files-found: error
 
