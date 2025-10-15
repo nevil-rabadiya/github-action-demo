@@ -111,13 +111,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     
     steps:
-      # Step 1: Checkout code
-      # Need package.json and package-lock.json for deployment
+      # Step 1: Checkout code      
       - name: Checkout code
         uses: actions/checkout@v4
 
       # Step 2: Download build artifacts
-      # Get the compiled code that was built and tested
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -125,19 +123,12 @@ jobs:
           path: dist/
 
       # Step 3: Verify downloaded files
-      # Sanity check to ensure artifacts were downloaded correctly
       - name: Verify downloaded files
         run: |
           echo "Verifying dist directory:"
           ls -la dist/
 
       # Step 4: Deploy to EC2
-      # Main deployment logic:
-      # - Creates SSH key file from secret
-      # - Packages application files into tarball
-      # - Copies tarball to EC2 server
-      # - Extracts files and installs dependencies on server
-      # - Restarts application using PM2
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
