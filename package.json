@@ -9,7 +9,8 @@
     "dev": "ts-node src/index.ts",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "setup:env": "node -e \"require('fs').copyFileSync('.env.dev', '.env')\""
   },
   "keywords": [
     "github-actions",
