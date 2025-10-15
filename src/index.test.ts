@@ -52,7 +52,7 @@ describe('Simple API Tests', () => {
 
   // Example of a failed test case (commented out)
   // Uncomment this to see a test failure in GitHub Actions
-  
+  /*
   describe('Failing Test Example', () => {
     it('should fail intentionally for demo purposes', async () => {
       const response = await request(app).get('/');
@@ -61,5 +61,5 @@ describe('Simple API Tests', () => {
       expect(response.body.message).toBe('wrong message');
     });
   });
-  
+  */
 });
