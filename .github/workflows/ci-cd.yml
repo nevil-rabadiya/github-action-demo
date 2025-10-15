@@ -1,25 +1,3 @@
-###############################################################################
-# CI/CD Pipeline for GitHub Actions Demo
-# 
-# This workflow implements a complete Continuous Integration and Continuous 
-# Deployment (CI/CD) pipeline with three distinct stages:
-# 1. BUILD - Compile TypeScript code and create build artifacts
-# 2. TEST - Run automated tests to ensure code quality
-# 3. DEPLOY - Deploy the application to production environment
-#
-# WORKFLOW TRIGGERS:
-# - Runs on every push to the 'dev' branch
-# - Runs on every pull request targeting the 'dev' branch
-# - Deployment only occurs on direct pushes to 'dev' (not PRs)
-#
-# BENEFITS OF THIS CI/CD PIPELINE:
-# - Automated testing ensures bugs are caught early
-# - Consistent build and deployment process reduces human error
-# - Fast feedback loop for developers
-# - Deployment only happens after successful build and tests
-# - Artifacts are shared between jobs for efficiency
-###############################################################################
-
 name: CI/CD Pipeline - Build, Test, Deploy
 
 # Define when this workflow should run
@@ -35,21 +13,7 @@ on:
 env:
   NODE_VERSION: '18.x'  # Node.js version to use
 
-###############################################################################
-# JOBS: The pipeline consists of 3 sequential jobs
-# Each job runs in a fresh virtual machine (runner)
-###############################################################################
-
 jobs:
-  ###############################################################################
-  # JOB 1: BUILD
-  # Purpose: Compile TypeScript code to JavaScript and prepare build artifacts
-  # - Checks out the code from the repository
-  # - Sets up Node.js environment
-  # - Installs project dependencies
-  # - Compiles TypeScript to JavaScript
-  # - Uploads build artifacts for use in subsequent jobs
-  ###############################################################################
   build:
     name: Build Application
     runs-on: ubuntu-latest  # Run on Ubuntu Linux virtual machine
@@ -97,13 +61,6 @@ jobs:
           path: dist/
           retention-days: 7
 
-  ###############################################################################
-  # JOB 2: TEST
-  # Purpose: Run automated tests to verify code functionality and quality
-  # - Downloads build artifacts from the build job
-  # - Runs the test suite using Jest
-  # - Only runs if the build job succeeds (needs: build)
-  ###############################################################################
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -146,23 +103,6 @@ jobs:
         if: always()  # Run this step even if tests fail
         run: echo "Test execution completed"
 
-  ###############################################################################
-  # JOB 3: DEPLOY
-  # Purpose: Deploy the application to AWS EC2 production server
-  # - Downloads build artifacts from the build job
-  # - Transfers files to EC2 server via SCP
-  # - Restarts the application using PM2 process manager
-  # - Verifies deployment was successful
-  # 
-  # DEPLOYMENT CONDITIONS:
-  # - Only runs after both 'build' and 'test' jobs succeed
-  # - Only runs on direct pushes to 'dev' branch (not on pull requests)
-  # 
-  # REQUIRED SECRETS (set in GitHub repository settings):
-  # - EC2_HOST: IP address or domain of the EC2 server
-  # - EC2_USER: SSH username for EC2 (usually 'ubuntu' or 'ec2-user')
-  # - EC2_SSH_KEY: Private SSH key for authentication
-  ###############################################################################
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
