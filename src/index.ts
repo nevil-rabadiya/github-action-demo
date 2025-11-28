@@ -13,7 +13,7 @@ app.use(express.json());
 // Simple message endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Hello from GitHub Actions Demo!!!!!!!!!',
+    message: 'Hello from GitHub Actions Demo>>>>>>>>>>>',
     timestamp: new Date().toISOString(),
     status: 'success',    
   });
