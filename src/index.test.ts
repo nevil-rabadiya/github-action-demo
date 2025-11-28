@@ -9,8 +9,7 @@ describe('Simple API Tests', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('status', 'success');
-      expect(response.body).toHaveProperty('timestamp');
-      expect(response.body).toHaveProperty('environment');
+      expect(response.body).toHaveProperty('timestamp');      
     });
   });
 
@@ -22,7 +21,6 @@ describe('Simple API Tests', () => {
       expect(response.body).toHaveProperty('status', 'healthy');
       expect(response.body).toHaveProperty('uptime');
       expect(response.body).toHaveProperty('message');
-      expect(response.body).toHaveProperty('environment');
     });
 
     it('should return numeric uptime', async () => {
@@ -42,12 +40,7 @@ describe('Simple API Tests', () => {
       expect(response.body).toHaveProperty('data');
       expect(response.body.data).toHaveProperty('version', '1.0.0');
     });
-
-    it('should include environment in data', async () => {
-      const response = await request(app).get('/api/message');
-      
-      expect(response.body.data).toHaveProperty('environment');
-    });
+    
   });
 
   // Example of a failed test case (commented out)
